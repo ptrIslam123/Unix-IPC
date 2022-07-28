@@ -38,7 +38,9 @@ int main(int argc, char **argv) {
         buff[bufflen + 1] = '\n';
 
         const std::string data(buff);
-        if (data == std::string("stop\r\n")) {
+        if (data == std::string("close\r\n")) {
+            break;
+        } else if (data == std::string("stop\r\n")) {
             isRunning = false;
         }
 
