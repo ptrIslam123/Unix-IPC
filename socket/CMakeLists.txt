@@ -4,4 +4,5 @@ project(net)
 
 add_subdirectory(servers/simple_server)
 add_subdirectory(servers/multiplex_server)
+add_subdirectory(servers/multiplex_server_use_poll)
 add_subdirectory(clients)
