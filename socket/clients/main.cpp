@@ -16,7 +16,7 @@ void errorHandler(int res, const std::string errorMsg) {
 
 int main(int argc, char **argv) {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    errorHandler(sockfd, "socket erorr");
+    errorHandler(sockfd, "net_api erorr");
 
     struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress));

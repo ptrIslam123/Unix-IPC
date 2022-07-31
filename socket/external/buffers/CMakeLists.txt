@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(io_operations)
+project(buffer)
 
-add_library(${PROJECT_NAME} io_operations_api.cpp)
+add_library(${PROJECT_NAME}
+    io_operations_api.cpp
+    buffer.cpp
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17

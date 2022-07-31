@@ -8,16 +8,13 @@
 #include <optional>
 #include <string>
 
-#include "../socket_api/socket_api.h"
-#include ".
-
 namespace net {
 
 namespace address {
 
 class SocketAddress {
 public:
-    typedef sock_api::NativeSocketAddress Address;
+    typedef struct sockaddr Address;
 
     virtual int getFamily() const = 0;
     virtual int getType() const = 0;
@@ -28,4 +25,4 @@ public:
 
 } // namespace address
 
-} // namespace net
+} // namespace net_api

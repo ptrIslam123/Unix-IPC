@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     }
 
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    errorHandler(listenfd, "socket error");
+    errorHandler(listenfd, "net_api error");
 
     struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress));
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Create queue for incoming connection" << std::endl;
     res = listen(listenfd, 10);
-    errorHandler(res, "listen error");
+    errorHandler(res, "makeListeningQueue error");
 
     char clientIpAddress[INET_ADDRSTRLEN] = {0};
     struct sockaddr_in clientAddress;

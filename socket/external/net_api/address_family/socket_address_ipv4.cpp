@@ -1,5 +1,6 @@
 #include "socket_address_ipv4.h"
 #include <cstring>
+#include <arpa/inet.h>
 
 namespace net {
 
@@ -23,7 +24,7 @@ int SocketAddressIpv4::getType() const {
 }
 
 SocketAddress::Address *SocketAddressIpv4::getAddress() const {
-    return reinterpret_cast<SocketAddress::Address>(&socketAddress_);
+    return (SocketAddress::Address*)(&socketAddress_);
 }
 
 socklen_t SocketAddressIpv4::getAddressLen() const {
@@ -35,12 +36,12 @@ void SocketAddressIpv4::fellAddress() {
     socketAddress_.sin_port = htons(port_);
 
     if (ipAddress_.has_value()) {
-        int res = inet_pton(AF_INET, ipAddress_.value(), &socketAddress_);
+        int res = inet_pton(AF_INET, ipAddress_.value().c_str(), &socketAddress_);
     } else {
-        socketAddress_.sin_addr = htonl(INADDR_ANY);
+        socketAddress_.sin_addr.s_addr = htonl(INADDR_ANY);
     }
 }
 
 } // namespace address
 
-} // namespace net
+} // namespace net_api

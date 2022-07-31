@@ -6,6 +6,12 @@
 
 #include <string>
 #include <iostream>
+#include <array>
+
+#include "net_api/socket/native_socket_api.h"
+#include "buffers/io_operations_api.h"
+
+typedef std::array<char, 1024> Buffer;
 
 bool isRunServer = true;
 
@@ -17,30 +23,27 @@ void errorHandler(int res, const std::string errorMsg) {
 }
 
 void handleConnect(int sockfd) {
-    char buff[1024] = {0};
-    ssize_t n = 0;
-    while ((n = read(sockfd, buff, sizeof(buff))) > 0) {
-        const std::string data(buff);
+    Buffer buff = {0};
+    size_t n = 0;
+    while (true) {
+        n = io_operation::ReadFrom(sockfd, buff.data(), buff.size());
+        if (n == 0) {
+            break;
+        }
+
+        const std::string data(buff.data());
         if (data == std::string("stop\r\n")) {
             isRunServer = false;
             break;
         }
 
-        n = write(sockfd, buff, sizeof(buff));
-        errorHandler(n, "write error");
-        memset(&buff, 0, sizeof(buff));
-    }
-
-    if (n == 0) {
-        return;
-    } else {
-        errorHandler(n, "read error");
+        n = io_operation::WriteTo(sockfd, buff.data(), buff.size());
+        io_operation::ClearBuffer(buff.data(), buff.size());
     }
 }
 
 int main(int argc, char **argv) {
-    int listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    errorHandler(listenfd, "socket error");
+    int listenfd = native_socket::MakeSocket(AF_INET, SOCK_STREAM);
 
     struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress));
@@ -50,12 +53,11 @@ int main(int argc, char **argv) {
     // нужно использовать только функцию htons!!!
     serverAddress.sin_port = htons(std::stoi(argv[1]));
 
-    int res = bind(listenfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
-    errorHandler(res, "bind error");
+    native_socket::BindSocket(listenfd, (struct sockaddr*)&serverAddress,
+                                sizeof(serverAddress));
 
     std::cout << "Create queue for incoming connection" << std::endl;
-    res = listen(listenfd, 10);
-    errorHandler(res, "listen error");
+    listen(listenfd, 10);
 
     char clientIpAddress[INET_ADDRSTRLEN] = {0};
     struct sockaddr_in clientAddress;
@@ -63,17 +65,16 @@ int main(int argc, char **argv) {
     while (isRunServer) {
         memset(&clientAddress, 0, clientAddressLen);
         int connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &clientAddressLen);
-        errorHandler(connfd, "accept error");
 
         inet_ntop(AF_INET, &clientAddress, clientIpAddress, clientAddressLen);
         std::cout << "New client connection with ip: " << clientIpAddress << std::endl;
         handleConnect(connfd);
 
-        close(connfd);
+        native_socket::CloseSocket(connfd);
         std::cout << "Close client connection" << std::endl;
     }
 
-    close(listenfd);
+    native_socket::CloseSocket(listenfd);
     std::cout << "Stop server" << std::endl;
 
     return 0;
