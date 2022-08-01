@@ -1,6 +1,7 @@
 #include "socket.h"
 
 #include "native_socket_api.h"
+#include "buffers/io_operations_api.h"
 
 namespace net {
 
@@ -23,6 +24,9 @@ void Socket::bind() {
 }
 
 void Socket::connect() {
+    if (address_->getFamily() != AF_INET && address_->getType() != SOCK_STREAM) {
+        throw std::runtime_error("attempt connect for not tcp socket");
+    }
     native_socket::Connect(socket_, address_->getAddress(), address_->getAddressLen());
 }
 
@@ -30,10 +34,16 @@ void Socket::makeListeningQueue(size_t queueSize) {
     native_socket::MakeListenQueue(socket_, queueSize);
 }
 
-void Socket::receive(const io::Buffer &buffer) {
+void Socket::receive(io::Buffer &buffer) {
+    io_operation::ReadFrom(socket_, buffer.data(), buffer.size());
 }
 
 void Socket::send(io::Buffer &buffer) {
+    io_operation::WriteTo(socket_, buffer.data(), buffer.size());
+}
+
+int Socket::fd() const {
+    return socket_;
 }
 
 void Socket::close() {

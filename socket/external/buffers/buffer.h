@@ -7,11 +7,13 @@ namespace io {
 class Buffer {
 public:
     typedef char Byte;
-    Buffer(Byte *data, size_t capacity);
+
+    Buffer();
     virtual ~Buffer() = default;
 
     virtual size_t read(Byte *data) = 0;
-    virtual size_t write(const Byte *data) = 0;
+    virtual size_t write(Byte *data, size_t size) = 0;
+    virtual Byte *data() = 0;
 
     void clear();
     bool isGood() const;
@@ -20,10 +22,10 @@ public:
 
 protected:
     void setSize(size_t size);
+    void setCapacity(size_t capacity);
     void setIsGood(bool isGood);
 
 private:
-    Byte *data_;
     size_t size_;
     size_t capacity_;
     bool isGood_;

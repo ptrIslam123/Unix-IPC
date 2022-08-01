@@ -16,10 +16,12 @@ public:
     void connect();
     void makeListeningQueue(size_t queueSize);
 
-    void receive(const io::Buffer &buffer);
+    void receive(io::Buffer &buffer);
     void send(io::Buffer &buffer);
 
-    void close();
+    void close()    ;
+
+    int fd() const;
 
 private:
     int socket_;

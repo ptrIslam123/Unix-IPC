@@ -4,10 +4,9 @@
 
 namespace io {
 
-Buffer::Buffer(Byte *const data, const size_t capacity):
-data_(data),
+Buffer::Buffer():
 size_(0),
-capacity_(capacity),
+capacity_(0),
 isGood_(true) {
 }
 
@@ -20,7 +19,7 @@ size_t Buffer::size() const {
 }
 
 void Buffer::clear() {
-    std::memset(data_, 0, capacity());
+    std::memset(data(), 0, capacity());
 }
 
 bool Buffer::isGood() const {
@@ -33,6 +32,10 @@ void Buffer::setIsGood(const bool isGood) {
 
 void Buffer::setSize(const size_t size) {
     size_ = size;
+}
+
+void Buffer::setCapacity(const size_t capacity) {
+    capacity_ = capacity;
 }
 
 } // namespace io
