@@ -9,7 +9,20 @@ namespace net {
 
 class Socket {
 public:
-    Socket(std::unique_ptr<address::SocketAddress> &&address);
+
+    typedef std::unique_ptr<address::SocketAddress> Address;
+
+    enum class Type {
+        ListenerSocket,
+        ClientSocket
+    };
+
+    Socket(Address &&address);
+    Socket(int fd);
+    Socket(Socket &&other);
+    Socket(const Socket &other) = delete;
+    Socket operator=(Socket &&other);
+    Socket &operator=(const Socket &other) = delete;
     ~Socket();
 
     void bind();
@@ -19,13 +32,13 @@ public:
     void receive(io::Buffer &buffer);
     void send(io::Buffer &buffer);
 
-    void close()    ;
+    void close();
 
     int fd() const;
 
 private:
     int socket_;
-    std::unique_ptr<address::SocketAddress> address_;
+    std::optional<Address> address_;
     bool isClosed_;
 };
 

@@ -5,12 +5,29 @@
 
 namespace net {
 
-Socket::Socket(std::unique_ptr<address::SocketAddress> &&address):
+Socket::Socket(Address &&address):
 socket_(0),
 address_(std::move(address)),
 isClosed_(true) {
-    socket_ = native_socket::MakeSocket(address_->getFamily(), address_->getType());
+    socket_ = native_socket::MakeSocket(address_.value()->getFamily(), address_.value()->getType());
     isClosed_ = false;
+}
+
+Socket::Socket(const int fd):
+socket_(fd),
+address_(std::nullopt),
+isClosed_(true) {
+}
+
+Socket::Socket(Socket &&other):
+socket_(other.socket_),
+address_(std::move(other.address_)) {
+}
+
+Socket Socket::operator=(Socket &&other) {
+    socket_ = other.socket_;
+    address_ = std::move(other.address_);
+    return std::move(*this);
 }
 
 Socket::~Socket() {
@@ -20,14 +37,22 @@ Socket::~Socket() {
 }
 
 void Socket::bind() {
-    native_socket::BindSocket(socket_, address_->getAddress(), address_->getAddressLen());
+    if (address_.has_value()) {
+        native_socket::BindSocket(socket_, address_.value()->getAddress(), address_.value()->getAddressLen());
+    } else {
+        throw std::runtime_error("attempt bind socket don`t have address struct");
+    }
 }
 
 void Socket::connect() {
-    if (address_->getFamily() != AF_INET && address_->getType() != SOCK_STREAM) {
+    if (!address_.has_value()) {
+        throw std::runtime_error("attempt connect use socket without address structure");
+    }
+
+    if (address_.value()->getFamily() != AF_INET && address_.value()->getType() != SOCK_STREAM) {
         throw std::runtime_error("attempt connect for not tcp socket");
     }
-    native_socket::Connect(socket_, address_->getAddress(), address_->getAddressLen());
+    native_socket::Connect(socket_, address_.value()->getAddress(), address_.value()->getAddressLen());
 }
 
 void Socket::makeListeningQueue(size_t queueSize) {

@@ -35,13 +35,17 @@ data_() {
 
 template<size_t Capacity>
 size_t StaticBuffer<Capacity>::read(Byte *data) {
-    std::memcpy(data_.data(), data, size());
+    for (auto i = 0; i < size(); ++i) {
+        data[i] = data_[i];
+    }
     return size();
 }
 
 template<size_t Capacity>
 size_t StaticBuffer<Capacity>::write(Byte *const data, const size_t size) {
-    std::memcpy(data, data_.data(), size);
+    for (auto i = 0; i < size; ++i) {
+        data_[i] = data[i];
+    }
     setSize(size);
     return size;
 }

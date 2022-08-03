@@ -12,6 +12,8 @@ void Connect(int socket, struct sockaddr *socketAddress, socklen_t socketAddress
 
 void MakeListenQueue(int socket, size_t queueSize);
 
+int Accept(int socket, struct sockaddr *clientAddress, socklen_t *clientAddressLen);
+
 void CloseSocket(int socket);
 
 } // namespace native_socket

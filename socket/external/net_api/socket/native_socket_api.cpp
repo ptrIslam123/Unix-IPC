@@ -37,6 +37,14 @@ void MakeListenQueue(const int socket, const size_t queueSize) {
     }
 }
 
+int Accept(const int socket, struct sockaddr *const clientAddress, socklen_t *const clientAddressLen) {
+    int result = accept(socket, clientAddress, clientAddressLen);
+    if (result < 0) {
+        throw std::runtime_error("error when try accept new client connection");
+    }
+
+    return result;
+}
 
 void CloseSocket(const int socket) {
     int result = close(socket);
