@@ -8,22 +8,33 @@ namespace acceptor {
 TcpMultiplexAcceptor::TcpMultiplexAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler):
 clientPollFdSet_(),
 tcpSessions_() {
-    const int listenerFd = listenerSocket.fd();
     const struct pollfd listenerPollFd = {.fd = listenerSocket.fd(), .events = POLLRDNORM};
     clientPollFdSet_.push_back(listenerPollFd);
 
-    auto listenerRequestHandler = [this, listenerFd, clientRequestHandler] (const io::Buffer &) {
-        const int clientFd = native_socket::Accept(listenerFd, NULL, NULL);
-        const struct pollfd clientPollFd = {.fd = clientFd, .events = POLLRDNORM};
-        clientPollFdSet_.push_back(clientPollFd);
+    auto listenerRequestHandler = [this, clientRequestHandler] (Socket &&listenerSocket) {
+        Socket clientSocket(listenerSocket.accept());
+        const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
 
-        tcpSessions_.push_back(TcpSession(Socket(clientFd), Socket::Type::ClientSocket,
-                                          clientRequestHandler));
+        clientPollFdSet_.push_back(clientPollFd);
+        tcpSessions_.push_back(TcpSession(std::move(clientSocket), clientRequestHandler));
         return true;
     };
 
-    tcpSessions_.push_back(TcpSession(std::move(listenerSocket), Socket::Type::ListenerSocket,
-                                      listenerRequestHandler));
+    tcpSessions_.push_back(TcpSession(std::move(listenerSocket), listenerRequestHandler));
+}
+
+TcpMultiplexAcceptor::TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) noexcept :
+clientPollFdSet_(std::move(other.clientPollFdSet_)),
+tcpSessions_(std::move(other.tcpSessions_)) {
+}
+
+TcpMultiplexAcceptor &TcpMultiplexAcceptor::operator=(TcpMultiplexAcceptor &&other) noexcept {
+    clientPollFdSet_.clear();
+    tcpSessions_.clear();
+
+    clientPollFdSet_ = std::move(other.clientPollFdSet_);
+    tcpSessions_ = std::move(tcpSessions_);
+    return *this;
 }
 
 void TcpMultiplexAcceptor::pollingLoop() {
@@ -59,23 +70,27 @@ bool TcpMultiplexAcceptor::handleEvent(TcpSession &tcpSession, const pollfd &pol
 }
 
 
-TcpMultiplexAcceptor::TcpSession::TcpSession(
-    Socket &&socket, const Socket::Type type, TcpMultiplexAcceptor::ClientRequestHandler requestHandler):
+TcpMultiplexAcceptor::TcpSession::TcpSession(Socket &&socket, ClientRequestHandler requestHandler):
     socket_(std::move(socket)),
-    type_(type),
     requestHandler_(requestHandler) {
 }
 
-bool TcpMultiplexAcceptor::TcpSession::operator()() {
-    if (type_ == Socket::Type::ClientSocket) {
-        io::StaticBuffer<1024> buffer;
-        socket_.receive(buffer);
-        return requestHandler_(buffer);
-    } else {
-        io::StaticBuffer<1> buffer;
-        return requestHandler_(buffer);
-    }
+TcpMultiplexAcceptor::TcpSession::TcpSession(TcpMultiplexAcceptor::TcpSession &&other) noexcept :
+socket_(std::move(other.socket_)),
+requestHandler_(std::move(other.requestHandler_)) {
 }
+
+TcpMultiplexAcceptor::TcpSession &
+TcpMultiplexAcceptor::TcpSession::operator=(TcpMultiplexAcceptor::TcpSession &&other) noexcept {
+    socket_ = std::move(other.socket_);
+    requestHandler_ = std::move(other.requestHandler_);
+    return *this;
+}
+
+bool TcpMultiplexAcceptor::TcpSession::operator()() {
+    return requestHandler_(socket_.copy());
+}
+
 } // namespace acceptor {
 
 } // namespace net

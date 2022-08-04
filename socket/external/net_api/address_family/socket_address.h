@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 
 namespace net {
 
@@ -20,6 +21,8 @@ public:
     virtual int getType() const = 0;
     virtual Address *getAddress() const = 0;
     virtual socklen_t getAddressLen() const = 0;
+    virtual const std::string_view getAddressStr() = 0;
+    virtual std::unique_ptr<SocketAddress> copy() const  = 0;
     virtual ~SocketAddress() = default;
 };
 

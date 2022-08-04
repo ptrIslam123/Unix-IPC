@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstring>
+#include <cassert>
 
 #include "io_operations_api.h"
 
@@ -17,7 +18,7 @@ public:
     StaticBuffer();
     ~StaticBuffer() = default;
 
-    virtual size_t read(Byte *data) override;
+    virtual size_t read(Byte *data, size_t size) override;
     virtual size_t write(Byte *data, size_t size) override;
     virtual Byte *data() override;
     virtual const Byte *data() const override;
@@ -35,15 +36,17 @@ data_() {
 }
 
 template<size_t Capacity>
-size_t StaticBuffer<Capacity>::read(Byte *data) {
-    for (auto i = 0; i < size(); ++i) {
+size_t StaticBuffer<Capacity>::read(Byte *data, size_t size) {
+    assert(size <= capacity());
+    for (auto i = 0; i < size; ++i) {
         data[i] = data_[i];
     }
-    return size();
+    return size;
 }
 
 template<size_t Capacity>
 size_t StaticBuffer<Capacity>::write(Byte *const data, const size_t size) {
+    assert(size <= capacity());
     for (auto i = 0; i < size; ++i) {
         data_[i] = data[i];
     }

@@ -1,5 +1,9 @@
 #include "socket.h"
 
+#include <netinet/in.h>
+#include <cstring>
+
+#include "socket_address_ipv4.h"
 #include "native_socket_api.h"
 #include "buffers/io_operations_api.h"
 
@@ -7,45 +11,37 @@ namespace net {
 
 Socket::Socket(Address &&address):
 socket_(0),
-address_(std::move(address)),
-isClosed_(true) {
+address_(std::move(address)) {
     socket_ = native_socket::MakeSocket(address_.value()->getFamily(), address_.value()->getType());
-    isClosed_ = false;
 }
 
 Socket::Socket(const int fd):
 socket_(fd),
-address_(std::nullopt),
-isClosed_(true) {
+address_(std::nullopt) {
+}
+
+Socket::Socket(const int fd, Address &&address):
+socket_(fd),
+address_(std::move(address)) {
 }
 
 Socket::Socket(Socket &&other):
 socket_(other.socket_),
-address_(std::move(other.address_)),
-isClosed_(other.isClosed_) {
+address_(std::move(other.address_)) {
     other.socket_ = -1;
-    other.isClosed_ = true;
 }
 
 Socket &Socket::operator=(Socket &&other) {
     socket_ = other.socket_;
     address_ = std::move(other.address_);
-    isClosed_ = other.isClosed_;
-
     other.socket_ = -1;
-    other.isClosed_ = true;
     return *this;
-}
-
-Socket::~Socket() {
-    if (!isClosed_) {
-        close();
-    }
 }
 
 void Socket::bind() {
     if (address_.has_value()) {
-        native_socket::BindSocket(socket_, address_.value()->getAddress(), address_.value()->getAddressLen());
+        native_socket::BindSocket(socket_, address_.value()->getAddress(),
+                                  address_.value()->getAddressLen());
     } else {
         throw std::runtime_error("attempt bind socket don`t have address struct");
     }
@@ -66,21 +62,42 @@ void Socket::makeListeningQueue(size_t queueSize) {
     native_socket::MakeListenQueue(socket_, queueSize);
 }
 
-void Socket::receive(io::Buffer &buffer) {
-    io_operation::ReadFrom(socket_, buffer.data(), buffer.capacity());
+void Socket::read(io::Buffer &buffer, const size_t size) {
+    io_operation::ReadFrom(socket_, buffer.data(), size);
 }
 
-void Socket::send(io::Buffer &buffer) {
-    io_operation::WriteTo(socket_, buffer.data(), buffer.capacity());
+void Socket::write(io::Buffer &buffer, const size_t size) {
+    io_operation::WriteTo(socket_, buffer.data(), size);
 }
 
 int Socket::fd() const {
     return socket_;
 }
 
-void Socket::close() {
-    native_socket::CloseSocket(socket_);
-    isClosed_ = true;
+Socket Socket::copy() const {
+    Address address;
+    if (address_.has_value()) {
+        address = std::move(address_.value()->copy());
+    }
+    return Socket(fd(), std::move(address));
+}
+
+Socket Socket::accept() {
+    struct sockaddr_in clientSocketAddress;
+    socklen_t clientSocketAddressLen = sizeof(clientSocketAddress);
+    std::memset(&clientSocketAddress, 0, clientSocketAddressLen);
+
+    const auto clientFd = native_socket::Accept(fd(), (struct sockaddr*)&clientSocketAddress,
+            &clientSocketAddressLen);
+    return Socket(clientFd, std::make_unique<address::SocketAddressIpv4>(clientSocketAddress, 0));
+}
+
+const std::string_view Socket::addressStr() {
+    if (!address_.has_value()) {
+        return std::string_view ();
+    }
+
+    return address_.value()->getAddressStr();
 }
 
 } // namespace net_api

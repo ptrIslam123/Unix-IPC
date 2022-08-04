@@ -6,6 +6,13 @@ namespace net {
 
 namespace address {
 
+SocketAddressIpv4::SocketAddressIpv4(const struct sockaddr_in &socketAddress, const short port):
+SocketAddress(),
+ipAddress_(std::nullopt),
+port_(port),
+socketAddress_(socketAddress) {
+}
+
 SocketAddressIpv4::SocketAddressIpv4(const IpAddress &ipaddress, const short port):
 SocketAddress(),
 ipAddress_(ipaddress),
@@ -40,6 +47,21 @@ void SocketAddressIpv4::fellAddress() {
     } else {
         socketAddress_.sin_addr.s_addr = htonl(INADDR_ANY);
     }
+}
+
+const std::string_view SocketAddressIpv4::getAddressStr() {
+    static std::array<char, INET_ADDRSTRLEN> addressBuff = {0};
+    static bool isEvalSocketAddress = false;
+    if (!isEvalSocketAddress) {
+        inet_ntop(getFamily(), &socketAddress_, addressBuff.data(), getAddressLen());
+        isEvalSocketAddress = true;
+    }
+
+    return std::string_view(addressBuff.data());
+}
+
+std::unique_ptr<SocketAddress> SocketAddressIpv4::copy() const {
+    return std::unique_ptr<SocketAddress>(new SocketAddressIpv4(socketAddress_, port_));
 }
 
 } // namespace address

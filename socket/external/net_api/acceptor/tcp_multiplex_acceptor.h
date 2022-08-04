@@ -17,29 +17,35 @@ namespace acceptor {
 
 class TcpMultiplexAcceptor {
 public:
-    typedef std::function<bool(const io::Buffer &buffer)> ClientRequestHandler;
+    typedef std::function<bool(Socket &&socket)> ClientRequestHandler;
 
     class TcpSession {
     public:
-        TcpSession(Socket &&socket, Socket::Type type, ClientRequestHandler requestHandler);
+        TcpSession(Socket &&socket, ClientRequestHandler requestHandler);
+        TcpSession(TcpSession &&other) noexcept;
+        TcpSession &operator=(TcpSession &&other) noexcept;
+        TcpSession(const TcpSession &other) = delete;
+        TcpSession &operator=(const TcpSession &other) = delete;
+        ~TcpSession() = default;
 
         bool operator()();
 
     private:
         Socket socket_;
-        Socket::Type type_;
         ClientRequestHandler requestHandler_;
     };
 
     TcpMultiplexAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler);
-
+    TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) noexcept;
+    TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) noexcept;
+    TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;
+    TcpMultiplexAcceptor &operator=(const TcpMultiplexAcceptor &other) = delete;
+    ~TcpMultiplexAcceptor() = default;
     void pollingLoop();
 
-    void handleClientsSocket(int &readyCount);
-
-    bool handleEvent(TcpSession &tcpSession, const struct pollfd &pollFd, int &readyCount);
-
 private:
+    void handleClientsSocket(int &readyCount);
+    bool handleEvent(TcpSession &tcpSession, const struct pollfd &pollFd, int &readyCount);
     int getCountReadyTcpSessions();
 
     std::vector<struct pollfd> clientPollFdSet_;
