@@ -28,6 +28,7 @@ public:
         TcpSession &operator=(const TcpSession &other) = delete;
         ~TcpSession() = default;
 
+        void close();
         bool operator()();
 
     private:
@@ -40,7 +41,7 @@ public:
     TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) noexcept;
     TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;
     TcpMultiplexAcceptor &operator=(const TcpMultiplexAcceptor &other) = delete;
-    ~TcpMultiplexAcceptor() = default;
+    ~TcpMultiplexAcceptor();
     void pollingLoop();
 
 private:

@@ -37,6 +37,15 @@ TcpMultiplexAcceptor &TcpMultiplexAcceptor::operator=(TcpMultiplexAcceptor &&oth
     return *this;
 }
 
+TcpMultiplexAcceptor::~TcpMultiplexAcceptor() {
+    for (auto i = 0; i < tcpSessions_.size(); ++i) {
+        tcpSessions_[i].close();
+    }
+
+    clientPollFdSet_.clear();
+    tcpSessions_.clear();
+}
+
 void TcpMultiplexAcceptor::pollingLoop() {
     while (true) {
         auto readyCount = getCountReadyTcpSessions();
@@ -71,8 +80,8 @@ bool TcpMultiplexAcceptor::handleEvent(TcpSession &tcpSession, const pollfd &pol
 
 
 TcpMultiplexAcceptor::TcpSession::TcpSession(Socket &&socket, ClientRequestHandler requestHandler):
-    socket_(std::move(socket)),
-    requestHandler_(requestHandler) {
+socket_(std::move(socket)),
+requestHandler_(requestHandler) {
 }
 
 TcpMultiplexAcceptor::TcpSession::TcpSession(TcpMultiplexAcceptor::TcpSession &&other) noexcept :
@@ -80,8 +89,8 @@ socket_(std::move(other.socket_)),
 requestHandler_(std::move(other.requestHandler_)) {
 }
 
-TcpMultiplexAcceptor::TcpSession &
-TcpMultiplexAcceptor::TcpSession::operator=(TcpMultiplexAcceptor::TcpSession &&other) noexcept {
+TcpMultiplexAcceptor::TcpSession
+&TcpMultiplexAcceptor::TcpSession::operator=(TcpMultiplexAcceptor::TcpSession &&other) noexcept {
     socket_ = std::move(other.socket_);
     requestHandler_ = std::move(other.requestHandler_);
     return *this;
@@ -89,6 +98,10 @@ TcpMultiplexAcceptor::TcpSession::operator=(TcpMultiplexAcceptor::TcpSession &&o
 
 bool TcpMultiplexAcceptor::TcpSession::operator()() {
     return requestHandler_(socket_.copy());
+}
+
+void TcpMultiplexAcceptor::TcpSession::close() {
+    native_socket::CloseSocket(socket_.fd());
 }
 
 } // namespace acceptor {
