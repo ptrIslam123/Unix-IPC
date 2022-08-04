@@ -21,7 +21,7 @@ public:
     Socket(int fd);
     Socket(Socket &&other);
     Socket(const Socket &other) = delete;
-    Socket operator=(Socket &&other);
+    Socket &operator=(Socket &&other);
     Socket &operator=(const Socket &other) = delete;
     ~Socket();
 

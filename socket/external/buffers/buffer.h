@@ -14,6 +14,7 @@ public:
     virtual size_t read(Byte *data) = 0;
     virtual size_t write(Byte *data, size_t size) = 0;
     virtual Byte *data() = 0;
+    virtual const Byte *data() const = 0;
 
     void clear();
     bool isGood() const;

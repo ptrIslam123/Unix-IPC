@@ -20,6 +20,7 @@ public:
     virtual size_t read(Byte *data) override;
     virtual size_t write(Byte *data, size_t size) override;
     virtual Byte *data() override;
+    virtual const Byte *data() const override;
 
 private:
     BufferType data_;
@@ -52,6 +53,11 @@ size_t StaticBuffer<Capacity>::write(Byte *const data, const size_t size) {
 
 template<size_t Capacity>
 Buffer::Byte *StaticBuffer<Capacity>::data() {
+    return data_.data();
+}
+
+template<size_t Capacity>
+const Buffer::Byte *StaticBuffer<Capacity>::data() const {
     return data_.data();
 }
 

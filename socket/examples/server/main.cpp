@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
     listener.bind();
     listener.makeListeningQueue(10);
 
-    auto handler = []() {
+    auto handler = [](const io::Buffer &buffer) {
+        std::cout << "receive: " << buffer.data() << std::endl;
         return true;
     };
 

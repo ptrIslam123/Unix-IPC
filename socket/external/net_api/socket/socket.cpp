@@ -21,13 +21,20 @@ isClosed_(true) {
 
 Socket::Socket(Socket &&other):
 socket_(other.socket_),
-address_(std::move(other.address_)) {
+address_(std::move(other.address_)),
+isClosed_(other.isClosed_) {
+    other.socket_ = -1;
+    other.isClosed_ = true;
 }
 
-Socket Socket::operator=(Socket &&other) {
+Socket &Socket::operator=(Socket &&other) {
     socket_ = other.socket_;
     address_ = std::move(other.address_);
-    return std::move(*this);
+    isClosed_ = other.isClosed_;
+
+    other.socket_ = -1;
+    other.isClosed_ = true;
+    return *this;
 }
 
 Socket::~Socket() {
@@ -60,11 +67,11 @@ void Socket::makeListeningQueue(size_t queueSize) {
 }
 
 void Socket::receive(io::Buffer &buffer) {
-    io_operation::ReadFrom(socket_, buffer.data(), buffer.size());
+    io_operation::ReadFrom(socket_, buffer.data(), buffer.capacity());
 }
 
 void Socket::send(io::Buffer &buffer) {
-    io_operation::WriteTo(socket_, buffer.data(), buffer.size());
+    io_operation::WriteTo(socket_, buffer.data(), buffer.capacity());
 }
 
 int Socket::fd() const {
