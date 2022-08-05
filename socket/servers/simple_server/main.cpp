@@ -8,8 +8,8 @@
 #include <iostream>
 #include <array>
 
-#include "net_api/socket/native_socket_api.h"
-#include "buffers/io_operations_api.h"
+#include "engine/net_api/socket/native_socket_api.h"
+#include "engine/buffers/io_operations_api.h"
 
 typedef std::array<char, 1024> Buffer;
 

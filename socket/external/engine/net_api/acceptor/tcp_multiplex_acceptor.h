@@ -7,9 +7,9 @@
 
 #include "../socket/socket.h"
 #include "../socket/native_socket_api.h"
-#include "socket_address_ipv4.h"
-#include "buffers/buffer.h"
-#include "buffers/static_buffer.h"
+#include "../address_family/socket_address_ipv4.h"
+#include "../../buffers/buffer.h"
+#include "../../buffers/static_buffer.h"
 
 namespace net {
 

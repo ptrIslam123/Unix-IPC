@@ -3,9 +3,9 @@
 #include <netinet/in.h>
 #include <cstring>
 
-#include "socket_address_ipv4.h"
 #include "native_socket_api.h"
-#include "buffers/io_operations_api.h"
+#include "../../buffers/io_operations_api.h"
+#include "../address_family/socket_address_ipv4.h"
 
 namespace net {
 

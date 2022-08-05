@@ -2,21 +2,17 @@ cmake_minimum_required(VERSION 3.16)
 
 project(socket)
 
-add_library(${PROJECT_NAME}
-    socket/socket.cpp
-    socket/native_socket_api.cpp
-    address_family/socket_address_ipv4.cpp
-    acceptor/tcp_multiplex_acceptor.cpp
+add_library(${PROJECT_NAME} STATIC
+    socket.cpp
+    native_socket_api.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     buffer
+    address_family
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    address_family
-    ../
-)
+target_include_directories(${PROJECT_NAME} PUBLIC ./ ../)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
