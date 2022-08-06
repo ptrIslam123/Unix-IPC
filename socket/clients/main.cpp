@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     memset(&serverAddress, 0, sizeof(serverAddress));
     serverAddress.sin_family = AF_INET;
     int res = inet_pton(AF_INET, argv[1], &serverAddress);
-    errorHandler(res, "set server ip address error");
+    errorHandler(res, "set multiplex_server ip address error");
     serverAddress.sin_port = htons(std::stoi(argv[2]));
 
     res = connect(sockfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
@@ -49,11 +49,11 @@ int main(int argc, char **argv) {
         n = read(sockfd, buff, sizeof(buff));
         errorHandler(n, "read error");
 
-        std::cout << "data from server: " << buff << std::endl;
+        std::cout << "data from multiplex_server: " << buff << std::endl;
         memset(&buff, 0, sizeof(buff));
     }
 
     close(sockfd);
-    std::cout << "Close client" << std::endl;
+    std::cout << "Close simple_client" << std::endl;
     return 0;
 }

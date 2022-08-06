@@ -28,10 +28,10 @@ void updateMaxfd() {
 void CloseConnection(int clientfd) {
     int res = close(clientfd);
     if (res < 0) {
-        std::cout << "Can`t close client session" << std::endl;
+        std::cout << "Can`t close simple_client session" << std::endl;
     }
 
-    std::cout << "Close client connection" << std::endl;
+    std::cout << "Close simple_client connection" << std::endl;
 }
 
 void CloseConnections() {
@@ -53,7 +53,7 @@ void handleRequest(int sockfd) {
         close(sockfd);
         FD_CLR(sockfd, &allset);
         updateMaxfd();
-        std::cout << "Close client connection" << std::endl;
+        std::cout << "Close simple_client connection" << std::endl;
         return;
     }
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
             errorHandler(connfd, "accept error");
 
             inet_ntop(AF_INET, &clientAddress, clientIpAddress, clientAddressLen);
-            std::cout << "New client connection with ip address: " << clientIpAddress << std::endl;
+            std::cout << "New simple_client connection with ip address: " << clientIpAddress << std::endl;
             clients.push_back(connfd);
             FD_SET(connfd, &allset);
             updateMaxfd();
@@ -124,6 +124,6 @@ int main(int argc, char **argv) {
 
     CloseConnections();
     close(listenfd);
-    std::cout << "Stop server" << std::endl;
+    std::cout << "Stop multiplex_server" << std::endl;
     return 0;
 }

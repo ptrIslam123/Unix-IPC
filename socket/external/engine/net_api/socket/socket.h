@@ -38,6 +38,7 @@ public:
     Socket copy() const;
 
     Socket accept();
+    void close();
 
 private:
     int socket_;

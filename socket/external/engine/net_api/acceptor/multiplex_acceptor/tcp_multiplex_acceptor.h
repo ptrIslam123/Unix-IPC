@@ -35,8 +35,8 @@ public:
     };
 
     TcpMultiplexAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler);
-    TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) noexcept;
-    TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) noexcept;
+    TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) = delete;
+    TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) = delete;
     TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;
     TcpMultiplexAcceptor &operator=(const TcpMultiplexAcceptor &other) = delete;
     ~TcpMultiplexAcceptor();

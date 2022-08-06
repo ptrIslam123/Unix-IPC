@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(simple_server)
+project(simple_client)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -8,8 +8,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     socket
     address_family
     acceptor
-    buffer
 )
+
+target_link_libraries(${PROJECT_NAME} INTERFACE utils)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ../../external)
 

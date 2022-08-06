@@ -43,7 +43,7 @@ void handleRequest(int sockfd) {
         }
         clients.erase(clientPollfd);
         close(sockfd);
-        std::cout << "Close client connection" << std::endl;
+        std::cout << "Close simple_client connection" << std::endl;
         return;
     }
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
             errorHandler(connfd, "accept error");
 
             inet_ntop(AF_INET, &clientAddress, clientIpAddress, clientAddressLen);
-            std::cout << "New client connection with ip address: " << clientIpAddress << std::endl;
+            std::cout << "New simple_client connection with ip address: " << clientIpAddress << std::endl;
 
             struct pollfd clientPollfd;
             clientPollfd.events = POLLRDNORM;
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
     }
 
     CloseOpeningFileDescriptors();
-    std::cout << "Stop server" << std::endl;
+    std::cout << "Stop multiplex_server" << std::endl;
 
     return 0;
 }

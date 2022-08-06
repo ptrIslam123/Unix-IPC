@@ -10,6 +10,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     acceptor
 )
 
+target_link_libraries(${PROJECT_NAME} INTERFACE utils)
+
 target_include_directories(${PROJECT_NAME} PUBLIC ../../external)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

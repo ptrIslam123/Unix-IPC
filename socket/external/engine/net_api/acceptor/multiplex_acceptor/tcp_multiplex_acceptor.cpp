@@ -13,6 +13,9 @@ tcpSessions_() {
     const struct pollfd listenerPollFd = {.fd = listenerSocket.fd(), .events = POLLRDNORM};
     clientPollFdSet_.push_back(listenerPollFd);
 
+    //! Здесь будут проблемы если этот класс будет перемещен, так как при перемещении this уже будет
+    //! другой, тогда получиться что в лямбде содержиться this, который указывает на уже опустошенный
+    //! экземпляр класса. Следовательно данный класс нельзя копировать и перемещать.
     auto listenerRequestHandler = [this, clientRequestHandler] (Socket &&listenerSocket) {
         Socket clientSocket(listenerSocket.accept());
         const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
@@ -23,20 +26,6 @@ tcpSessions_() {
     };
 
     tcpSessions_.push_back(TcpSession(std::move(listenerSocket), listenerRequestHandler));
-}
-
-TcpMultiplexAcceptor::TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) noexcept :
-clientPollFdSet_(std::move(other.clientPollFdSet_)),
-tcpSessions_(std::move(other.tcpSessions_)) {
-}
-
-TcpMultiplexAcceptor &TcpMultiplexAcceptor::operator=(TcpMultiplexAcceptor &&other) noexcept {
-    clientPollFdSet_.clear();
-    tcpSessions_.clear();
-
-    clientPollFdSet_ = std::move(other.clientPollFdSet_);
-    tcpSessions_ = std::move(tcpSessions_);
-    return *this;
 }
 
 TcpMultiplexAcceptor::~TcpMultiplexAcceptor() {

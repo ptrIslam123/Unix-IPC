@@ -100,4 +100,8 @@ const std::string_view Socket::addressStr() {
     return address_.value()->getAddressStr();
 }
 
+void Socket::close() {
+    native_socket::CloseSocket(socket_);
+}
+
 } // namespace net_api

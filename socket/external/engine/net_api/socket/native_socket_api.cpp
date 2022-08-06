@@ -26,7 +26,7 @@ void BindSocket(const int socket, const struct sockaddr *const socketAddress,
 void Connect(int socket, struct sockaddr *socketAddress, socklen_t socketAddressLen) {
     int result = connect(socket, socketAddress, socketAddressLen);
     if (result < 0) {
-        throw std::runtime_error("error when try connect to server");
+        throw std::runtime_error("error when try connect to multiplex_server");
     }
 }
 
@@ -40,7 +40,7 @@ void MakeListenQueue(const int socket, const size_t queueSize) {
 int Accept(const int socket, struct sockaddr *const clientAddress, socklen_t *const clientAddressLen) {
     int result = accept(socket, clientAddress, clientAddressLen);
     if (result < 0) {
-        throw std::runtime_error("error when try accept new client connection");
+        throw std::runtime_error("error when try accept new simple_client connection");
     }
 
     return result;

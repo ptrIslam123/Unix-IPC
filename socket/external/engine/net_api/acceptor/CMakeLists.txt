@@ -3,13 +3,15 @@ cmake_minimum_required(VERSION 3.16)
 project(acceptor)
 
 add_library(${PROJECT_NAME} STATIC
-   tcp_multiplex_acceptor.cpp
+    multiplex_acceptor/tcp_multiplex_acceptor.cpp
+#    multithread_acceptor/tcp_multithread_acceptor.cpp
 )
 
 target_link_directories(${PROJECT_NAME} PUBLIC
     socket
     buffer
     address_family
+#    pthread
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC .)
