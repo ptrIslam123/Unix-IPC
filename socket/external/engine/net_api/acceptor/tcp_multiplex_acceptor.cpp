@@ -1,5 +1,7 @@
 #include "tcp_multiplex_acceptor.h"
 
+#include "socket/native_socket_api.h"
+
 namespace net {
 
 namespace acceptor {

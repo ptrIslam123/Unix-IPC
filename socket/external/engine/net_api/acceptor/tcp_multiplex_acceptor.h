@@ -5,9 +5,7 @@
 #include <vector>
 #include <functional>
 
-#include "../socket/socket.h"
-#include "../socket/native_socket_api.h"
-#include "../address_family/socket_address_ipv4.h"
+#include "socket/socket.h"
 #include "../../buffers/buffer.h"
 #include "../../buffers/static_buffer.h"
 

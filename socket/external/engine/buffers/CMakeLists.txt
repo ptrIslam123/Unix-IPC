@@ -7,7 +7,7 @@ add_library(${PROJECT_NAME} STATIC
     buffer.cpp
 )
 
-target_link_directories(${PROJECT_NAME} PUBLIC ./)
+target_link_directories(${PROJECT_NAME} PUBLIC .)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17

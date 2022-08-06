@@ -6,7 +6,7 @@ add_library(${PROJECT_NAME} STATIC
     socket_address_ipv4.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ./)
+target_include_directories(${PROJECT_NAME} PUBLIC .)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17

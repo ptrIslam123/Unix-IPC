@@ -12,7 +12,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     address_family
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ./ ../)
+target_include_directories(${PROJECT_NAME} PUBLIC .)
+target_include_directories(${PROJECT_NAME} PUBLIC ..)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
