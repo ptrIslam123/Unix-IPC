@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "engine/net_api/socket/socket.h"
+#include "engine/net_api/tcp_listener/tcp_listener.h"
 #include "engine/net_api/address_family/socket_address_ipv4.h"
 #include "engine/net_api/acceptor/multiplex_acceptor/tcp_multiplex_acceptor.h"
 
@@ -19,11 +20,14 @@ auto handler = [](net::Socket &&socket) {
 };
 
 int main(int argc, char **argv) {
-    net::Socket listenerSocket(std::make_unique<net::address::SocketAddressIpv4>(std::nullopt, 8000));
-    listenerSocket.bind();
-    listenerSocket.makeListeningQueue(10);
+    if (argc != 2) {
+        throw std::runtime_error("no passing input arguments");
+    }
 
-    net::acceptor::TcpMultiplexAcceptor acceptor(std::move(listenerSocket), handler);
+    const auto serverPort = std::stoi(argv[1]);
+    auto serverAddress = std::make_unique<net::address::SocketAddressIpv4>(std::nullopt, serverPort);
+    net::tcp::TcpListener tcpSocketListener(std::move(serverAddress), serverPort);
+    net::acceptor::TcpMultiplexAcceptor acceptor(std::move(tcpSocketListener), handler);
     acceptor.pollingLoop();
 
     return 0;

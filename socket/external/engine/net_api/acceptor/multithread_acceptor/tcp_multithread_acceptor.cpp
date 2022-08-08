@@ -32,7 +32,7 @@ clientRequestHandler_(clientRequestHandler) {
 }
 
 bool TcpMultiThreadAcceptor::TcpSession::operator()() {
-    return clientRequestHandler_(clientSocket_.copy());
+    return clientRequestHandler_(Socket(clientSocket_));
 }
 } // namespace acceptor
 

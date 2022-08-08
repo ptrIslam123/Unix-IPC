@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
         int connfd = accept(listenfd, (struct sockaddr*)&clientAddress, &clientAddressLen);
 
         inet_ntop(AF_INET, &clientAddress, clientIpAddress, clientAddressLen);
-        std::cout << "New simple_client connection with ip: " << clientIpAddress << std::endl;
+        std::cout << "New simple_tcp_client connection with ip: " << clientIpAddress << std::endl;
         handleConnect(connfd);
 
         native_socket::CloseSocket(connfd);
-        std::cout << "Close simple_client connection" << std::endl;
+        std::cout << "Close simple_tcp_client connection" << std::endl;
     }
 
     native_socket::CloseSocket(listenfd);

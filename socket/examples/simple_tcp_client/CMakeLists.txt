@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(simple_client)
+project(example_tcp_client)
 
 add_executable(${PROJECT_NAME} main.cpp)
 

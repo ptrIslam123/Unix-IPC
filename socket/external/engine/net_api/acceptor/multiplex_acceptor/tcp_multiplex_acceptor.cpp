@@ -7,10 +7,10 @@ namespace net {
 namespace acceptor {
 
 
-TcpMultiplexAcceptor::TcpMultiplexAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler):
+TcpMultiplexAcceptor::TcpMultiplexAcceptor(tcp::TcpListener &&listenerSocket, ClientRequestHandler clientRequestHandler):
 clientPollFdSet_(),
 tcpSessions_() {
-    const struct pollfd listenerPollFd = {.fd = listenerSocket.fd(), .events = POLLRDNORM};
+    const struct pollfd listenerPollFd = {.fd = listenerSocket.getSocket().fd(), .events = POLLRDNORM};
     clientPollFdSet_.push_back(listenerPollFd);
 
     //! Здесь будут проблемы если этот класс будет перемещен, так как при перемещении this уже будет
@@ -25,7 +25,7 @@ tcpSessions_() {
         return true;
     };
 
-    tcpSessions_.push_back(TcpSession(std::move(listenerSocket), listenerRequestHandler));
+    tcpSessions_.push_back(TcpSession(listenerSocket.getSocket(), listenerRequestHandler));
 }
 
 TcpMultiplexAcceptor::~TcpMultiplexAcceptor() {
@@ -88,7 +88,7 @@ TcpMultiplexAcceptor::TcpSession
 }
 
 bool TcpMultiplexAcceptor::TcpSession::operator()() {
-    return requestHandler_(socket_.copy());
+    return requestHandler_(Socket(socket_));
 }
 
 void TcpMultiplexAcceptor::TcpSession::close() {

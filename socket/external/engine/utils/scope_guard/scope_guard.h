@@ -1,54 +1,11 @@
 #pragma once
 
-#include <iostream>
+#include <type_traits>
 
 namespace util {
 
-namespace details {
-
-enum class DeleterType {
-    Function,
-    Functor
-};
-
-template<typename T, typename D, DeleterType type>
-struct DeleterHelper;
-
 template<typename T, typename D>
-struct DeleterHelper<T, D, DeleterType::Function> {
-    typedef T ValueType;
-    typedef ValueType *PointerType;
-    typedef D DeleterType;
-
-    DeleterHelper():deleter_() {};
-    ~DeleterHelper() = default;
-
-    void operator()(PointerType ptr) {
-        deleter_(ptr);
-    }
-
-private:
-    DeleterType deleter_;
-};
-
-template<typename T, typename D>
-struct DeleterHelper<T, D, DeleterType::Functor> : public D {
-    typedef T ValueType;
-    typedef ValueType *PointerType;
-    typedef D DeleterType;
-
-    DeleterHelper() {};
-    ~DeleterHelper() = default;
-
-    void operator()(PointerType ptr) {
-        D::operator()(ptr);
-    }
-};
-
-} // namespace details
-
-template<typename T, typename D>
-struct ScopeGuard : public details::DeleterHelper<T, D, details::DeleterType::Functor> {
+struct ScopeGuard {
 public:
     typedef T ValueType;
     typedef D DeleterType;
@@ -67,11 +24,11 @@ public:
 
 private:
     ValueType value_;
+    DeleterType deleter_;
 };
 
 template<typename T, typename D>
 ScopeGuard<T, D>::ScopeGuard(ValueType &&value):
-details::DeleterHelper<T, D, details::DeleterType::Functor>(),
 value_(std::move(value)) {
 }
 
@@ -93,7 +50,7 @@ const typename ScopeGuard<T, D>::ValueType &ScopeGuard<T, D>::operator*() const 
 
 template<typename T, typename D>
 ScopeGuard<T, D>::~ScopeGuard() {
-    details::DeleterHelper<T, D, details::DeleterType::Functor>::operator()(&value_);
+    deleter_(&value_);
 }
 
 template<typename T, typename D>

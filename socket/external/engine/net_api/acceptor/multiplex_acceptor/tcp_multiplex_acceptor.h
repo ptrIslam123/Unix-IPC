@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "socket/socket.h"
+#include "tcp_listener/tcp_listener.h"
 #include "../../buffers/buffer.h"
 #include "../../buffers/static_buffer.h"
 
@@ -34,7 +35,7 @@ public:
         ClientRequestHandler requestHandler_;
     };
 
-    TcpMultiplexAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler);
+    TcpMultiplexAcceptor(tcp::TcpListener &&listenerSocket, ClientRequestHandler clientRequestHandler);
     TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) = delete;
     TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) = delete;
     TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;

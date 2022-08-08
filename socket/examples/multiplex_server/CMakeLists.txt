@@ -5,9 +5,9 @@ project(server)
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    socket
     address_family
     acceptor
+    tcp_socket
 )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE utils)

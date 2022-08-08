@@ -9,33 +9,23 @@
 
 namespace net {
 
-Socket::Socket(Address &&address):
+Socket::Socket(Address &&address, const Type type):
 socket_(0),
+type_(type),
 address_(std::move(address)) {
-    socket_ = native_socket::MakeSocket(address_.value()->getFamily(), address_.value()->getType());
+    init();
 }
 
-Socket::Socket(const int fd):
+Socket::Socket(const int fd, const Address &address, const Type type):
 socket_(fd),
-address_(std::nullopt) {
+type_(type),
+address_(address) {
 }
 
-Socket::Socket(const int fd, Address &&address):
-socket_(fd),
-address_(std::move(address)) {
-}
-
-Socket::Socket(Socket &&other):
-socket_(other.socket_),
-address_(std::move(other.address_)) {
-    other.socket_ = -1;
-}
-
-Socket &Socket::operator=(Socket &&other) {
-    socket_ = other.socket_;
-    address_ = std::move(other.address_);
-    other.socket_ = -1;
-    return *this;
+Socket::OperationResult Socket::init() {
+    socket_ = native_socket::MakeSocket(
+            address_.value()->getFamily(), address_.value()->getType());
+    return true;
 }
 
 void Socket::bind() {
@@ -55,41 +45,42 @@ void Socket::connect() {
     if (address_.value()->getFamily() != AF_INET && address_.value()->getType() != SOCK_STREAM) {
         throw std::runtime_error("attempt connect for not tcp socket");
     }
+
     native_socket::Connect(socket_, address_.value()->getAddress(), address_.value()->getAddressLen());
 }
 
 void Socket::makeListeningQueue(size_t queueSize) {
+    if (type_ == Type::Usual) {
+        throw std::runtime_error("attempt make listen queue for usual socket");
+    }
+
     native_socket::MakeListenQueue(socket_, queueSize);
 }
 
-void Socket::read(io::Buffer &buffer, const size_t size) {
-    io_operation::ReadFrom(socket_, buffer.data(), size);
+Socket::IOResult Socket::read(io::Buffer &buffer, const size_t size) {
+    return io_operation::ReadFrom(socket_, buffer.data(), size);
 }
 
-void Socket::write(io::Buffer &buffer, const size_t size) {
-    io_operation::WriteTo(socket_, buffer.data(), size);
+Socket::IOResult Socket::write(const io::Buffer &buffer, const size_t size) {
+    return io_operation::WriteTo(socket_, buffer.data(), size);
 }
 
 int Socket::fd() const {
     return socket_;
 }
 
-Socket Socket::copy() const {
-    Address address;
-    if (address_.has_value()) {
-        address = std::move(address_.value()->copy());
-    }
-    return Socket(fd(), std::move(address));
-}
-
 Socket Socket::accept() {
+    if (type_ == Type::Usual) {
+        throw std::runtime_error("attempt call accept for usual socket");
+    }
+
     struct sockaddr_in clientSocketAddress;
     socklen_t clientSocketAddressLen = sizeof(clientSocketAddress);
     std::memset(&clientSocketAddress, 0, clientSocketAddressLen);
 
     const auto clientFd = native_socket::Accept(fd(), (struct sockaddr*)&clientSocketAddress,
             &clientSocketAddressLen);
-    return Socket(clientFd, std::make_unique<address::SocketAddressIpv4>(clientSocketAddress, 0));
+    return Socket(clientFd, std::make_unique<address::SocketAddressIpv4>(clientSocketAddress, 0), type_);
 }
 
 const std::string_view Socket::addressStr() {

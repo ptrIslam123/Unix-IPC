@@ -1,7 +1,9 @@
 #pragma once
 
 #include "address_family/socket_address.h"
+#include "socket_state.h"
 #include "../../buffers/buffer.h"
+#include "../../utils/result/result.h"
 
 #include <memory>
 
@@ -9,39 +11,36 @@ namespace net {
 
 class Socket {
 public:
-    typedef std::unique_ptr<address::SocketAddress> Address;
+    typedef std::shared_ptr<address::SocketAddress> Address;
+    typedef util::Result<size_t, SocketState> IOResult;
+    typedef util::Result<bool, std::string> OperationResult;
 
     enum class Type {
-        ListenerSocket,
-        ClientSocket
+        Listener,
+        Usual
     };
 
-    Socket(Address &&address);
-    Socket(int fd);
-    Socket(int fd, Address &&address);
-    Socket(Socket &&other);
-    Socket &operator=(Socket &&other);
-
-    Socket(const Socket &other) = delete;
-    Socket &operator=(const Socket &other) = delete;
+    Socket(Address &&address, Type type);
+    Socket(int fd, const Address &address, Type type);
     ~Socket() = default;
 
     void bind();
     void connect();
     void makeListeningQueue(size_t queueSize);
+    Socket accept();
 
-    void read(io::Buffer &buffer, size_t size);
-    void write(io::Buffer &buffer, size_t size);
+    IOResult read(io::Buffer &buffer, size_t size);
+    IOResult write(const io::Buffer &buffer, size_t size);
 
     int fd() const;
     const std::string_view addressStr();
-    Socket copy() const;
-
-    Socket accept();
     void close();
 
 private:
+    OperationResult init();
+
     int socket_;
+    Type type_;
     std::optional<Address> address_;
 };
 

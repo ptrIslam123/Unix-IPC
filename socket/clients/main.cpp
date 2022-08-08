@@ -54,6 +54,6 @@ int main(int argc, char **argv) {
     }
 
     close(sockfd);
-    std::cout << "Close simple_client" << std::endl;
+    std::cout << "Close simple_tcp_client" << std::endl;
     return 0;
 }
