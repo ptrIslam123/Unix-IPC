@@ -80,7 +80,8 @@ Socket Socket::accept() {
 
     const auto clientFd = native_socket::Accept(fd(), (struct sockaddr*)&clientSocketAddress,
             &clientSocketAddressLen);
-    return Socket(clientFd, std::make_unique<address::SocketAddressIpv4>(clientSocketAddress, 0), type_);
+    return Socket(clientFd, std::make_unique<address::SocketAddressIpv4>(clientSocketAddress, 0),
+            Type::Usual);
 }
 
 const std::string_view Socket::addressStr() {
@@ -93,6 +94,10 @@ const std::string_view Socket::addressStr() {
 
 void Socket::close() {
     native_socket::CloseSocket(socket_);
+}
+
+std::optional<Socket::Address> Socket::getAddress() const {
+    return address_;
 }
 
 } // namespace net_api

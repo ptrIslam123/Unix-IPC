@@ -4,7 +4,7 @@
 
 #include "engine/net_api/socket/socket.h"
 #include "engine/net_api/address_family/socket_address_ipv4.h"
-#include "engine/net_api/acceptor/multiplex_acceptor/tcp_multiplex_acceptor.h"
+#include "engine/buffers/static_buffer.h"
 
 
 int main(int argc, char **argv) {
@@ -17,7 +17,6 @@ int main(int argc, char **argv) {
     net::Socket socket(std::make_unique<net::address::SocketAddressIpv4>(serverIpAddress, port),
             net::Socket::Type::Usual);
     socket.connect();
-
     io::StaticBuffer<1024> buffer;
     std::string msg;
     std::cin >> msg;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(server)
+project(example_tcp_multiplex_server)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -8,6 +8,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     address_family
     acceptor
     tcp_socket
+    receivers
 )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE utils)

@@ -33,6 +33,7 @@ public:
     IOResult write(const io::Buffer &buffer, size_t size);
 
     int fd() const;
+    std::optional<Address> getAddress() const;
     const std::string_view addressStr();
     void close();
 

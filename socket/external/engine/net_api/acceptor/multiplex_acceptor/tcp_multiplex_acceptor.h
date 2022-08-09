@@ -41,12 +41,13 @@ public:
     TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;
     TcpMultiplexAcceptor &operator=(const TcpMultiplexAcceptor &other) = delete;
     ~TcpMultiplexAcceptor();
+    void handleClientsSocket(int &readyCount);
+    int getCountReadyTcpSessions();
     void pollingLoop();
 
 private:
-    void handleClientsSocket(int &readyCount);
     bool handleEvent(TcpSession &tcpSession, const struct pollfd &pollFd, int &readyCount);
-    int getCountReadyTcpSessions();
+
 
     std::vector<struct pollfd> clientPollFdSet_;
     std::vector<TcpSession> tcpSessions_;
