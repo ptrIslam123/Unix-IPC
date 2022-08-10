@@ -6,8 +6,9 @@ namespace net {
 
 namespace acceptor {
 
-TcpMultiThreadAcceptor::TcpMultiThreadAcceptor(net::Socket &&listenerSocket, ClientRequestHandler clientRequestHandler):
-listenerSocket_(std::move(listenerSocket)),
+TcpMultiThreadAcceptor::TcpMultiThreadAcceptor(tcp::TcpListener &&tcpListenerSocket,
+                                               ClientRequestHandler clientRequestHandler):
+listenerSocket_(std::move(tcpListenerSocket.getSocket())),
 clientRequestHandler_(clientRequestHandler),
 tcpSessions_() {}
 

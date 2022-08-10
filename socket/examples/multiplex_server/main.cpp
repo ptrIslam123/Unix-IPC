@@ -20,28 +20,30 @@ auto handler = [](net::Socket &&socket) {
     return true;
 };
 
+auto MakeTcpMultiplexAcceptor(net::Socket::Address &&address, short port) {
+    net::tcp::TcpListener tcpSocketListener(std::move(address), port);
+    std::cout << "server ip: " << tcpSocketListener.getSocket().getAddress().value()->getAddressStr()
+              << std::endl;
+    net::acceptor::TcpMultiplexAcceptor acceptor(std::move(tcpSocketListener), handler);
+
+    return std::move(acceptor);
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         throw std::runtime_error("no passing input arguments");
     }
+
     const auto serverPort = std::stoi(argv[1]);
     auto serverAddress = std::make_unique<net::address::SocketAddressIpv4>(std::nullopt, serverPort);
-    net::tcp::TcpListener tcpSocketListener(std::move(serverAddress), serverPort);
-
-    net::TcpReceiver<1024> receiver(std::move(tcpSocketListener), 5);
-    const net::TcpReceiver<1024>::Messages &messages = receiver.receive(5);
-
-    for (auto i = 0; i < messages.size(); ++i) {
-        const auto address = messages[i].first.getAddress().value()->getAddressStr();
-        const auto data = std::move(messages[i].second);
-        std::cout << "receive from: " << address << " data = [" << data.data() << "]" << std::endl;
-    }
-
-//    const auto serverPort = std::stoi(argv[1]);
-//    auto serverAddress = std::make_unique<net::address::SocketAddressIpv4>(std::nullopt, serverPort);
 //    net::tcp::TcpListener tcpSocketListener(std::move(serverAddress), serverPort);
+//    std::cout << "server ip: " << tcpSocketListener.getSocket().getAddress().value()->getAddressStr()
+//            << std::endl;
 //    net::acceptor::TcpMultiplexAcceptor acceptor(std::move(tcpSocketListener), handler);
 //    acceptor.pollingLoop();
+
+    auto acceptor = MakeTcpMultiplexAcceptor(std::move(serverAddress), serverPort);
+    acceptor.pollingLoop();
 
     return 0;
 }

@@ -22,6 +22,37 @@ type_(type),
 address_(address) {
 }
 
+Socket::Socket(const Socket &other):
+socket_(other.socket_),
+type_(other.type_),
+address_(other.address_) {
+}
+
+Socket::Socket(Socket &&other) noexcept:
+socket_(other.socket_),
+type_(other.type_),
+address_(std::move(other.address_)){
+    other.socket_ = -1;
+}
+
+Socket &Socket::operator=(const Socket &other) {
+    socket_ = other.socket_;
+    type_ = other.type_;
+    address_ = other.address_;
+    return *this;
+}
+
+Socket &Socket::operator=(Socket &&other) {
+    socket_ = other.socket_;
+    type_ = other.type_;
+    address_ = std::move(other.address_);
+    other.socket_ = -1;
+    return *this;
+}
+
+Socket::~Socket() {
+}
+
 Socket::OperationResult Socket::init() {
     socket_ = native_socket::MakeSocket(
             address_.value()->getFamily(), address_.value()->getType());
@@ -93,7 +124,9 @@ const std::string_view Socket::addressStr() {
 }
 
 void Socket::close() {
-    native_socket::CloseSocket(socket_);
+    if (socket_ > 0) {
+        native_socket::CloseSocket(socket_);
+    }
 }
 
 std::optional<Socket::Address> Socket::getAddress() const {

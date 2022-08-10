@@ -30,14 +30,14 @@ private:
 
 template<size_t MessageCapacity>
 TcpReceiver<MessageCapacity>::TcpReceiver(tcp::TcpListener &&tcpListener, const size_t senderCount):
-        messages_(),
-        requestHandler_([this](Socket &&socket){
-            io::StaticBuffer<MessageCapacity> buffer;
-            socket.read(buffer, buffer.capacity());
-            messages_.template emplace_back(socket, std::move(buffer));
-            return true;
-        }),
-        acceptor_(std::move(tcpListener), requestHandler_){
+messages_(),
+requestHandler_([this](Socket &&socket){
+    io::StaticBuffer<MessageCapacity> buffer;
+    socket.read(buffer, buffer.capacity());
+    messages_.template emplace_back(socket, std::move(buffer));
+    return true;
+}),
+acceptor_(std::move(tcpListener), requestHandler_){
     messages_.reserve(senderCount);
 }
 

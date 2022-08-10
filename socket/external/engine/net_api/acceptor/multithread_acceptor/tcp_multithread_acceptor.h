@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "socket/socket.h"
+#include "tcp_listener/tcp_listener.h"
 
 namespace net {
 
@@ -25,7 +26,8 @@ public:
         ClientRequestHandler clientRequestHandler_;
     };
 
-    TcpMultiThreadAcceptor(Socket &&listenerSocket, ClientRequestHandler clientRequestHandler);
+    TcpMultiThreadAcceptor(tcp::TcpListener &&tcpListenerSocket,
+                           ClientRequestHandler clientRequestHandler);
     ~TcpMultiThreadAcceptor() = default;
     void pollingLoop();
 

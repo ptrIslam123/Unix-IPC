@@ -30,14 +30,16 @@ public:
         void close();
         bool operator()();
 
+        void setRequestHandler(ClientRequestHandler requestHandler);
+
     private:
         Socket socket_;
         ClientRequestHandler requestHandler_;
     };
 
-    TcpMultiplexAcceptor(tcp::TcpListener &&listenerSocket, ClientRequestHandler clientRequestHandler);
-    TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other) = delete;
-    TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other) = delete;
+    TcpMultiplexAcceptor(tcp::TcpListener &&tcpListener, ClientRequestHandler clientRequestHandler);
+    TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other);
+    TcpMultiplexAcceptor &operator=(TcpMultiplexAcceptor &&other);
     TcpMultiplexAcceptor(const TcpMultiplexAcceptor &other) = delete;
     TcpMultiplexAcceptor &operator=(const TcpMultiplexAcceptor &other) = delete;
     ~TcpMultiplexAcceptor();
@@ -46,11 +48,15 @@ public:
     void pollingLoop();
 
 private:
+    typedef ClientRequestHandler ListenerHandler;
+
     bool handleEvent(TcpSession &tcpSession, const struct pollfd &pollFd, int &readyCount);
 
-
+    Socket listenerSocket_;
     std::vector<struct pollfd> clientPollFdSet_;
     std::vector<TcpSession> tcpSessions_;
+    ListenerHandler listenerHandler_;
+    ClientRequestHandler clientRequestHandler_;
 };
 
 } // namespace acceptor

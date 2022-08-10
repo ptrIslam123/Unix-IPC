@@ -5,27 +5,55 @@
 namespace net {
 
 namespace acceptor {
-
-
-TcpMultiplexAcceptor::TcpMultiplexAcceptor(tcp::TcpListener &&listenerSocket, ClientRequestHandler clientRequestHandler):
+    
+TcpMultiplexAcceptor::TcpMultiplexAcceptor(tcp::TcpListener &&tcpListener, ClientRequestHandler clientRequestHandler):
+listenerSocket_(tcpListener.getSocket()),
 clientPollFdSet_(),
-tcpSessions_() {
-    const struct pollfd listenerPollFd = {.fd = listenerSocket.getSocket().fd(), .events = POLLRDNORM};
-    clientPollFdSet_.push_back(listenerPollFd);
+tcpSessions_(),
+clientRequestHandler_(clientRequestHandler),
+listenerHandler_([this](Socket &&listenerSocket){
+    Socket clientSocket(listenerSocket.accept());
+    const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
 
-    //! Здесь будут проблемы если этот класс будет перемещен, так как при перемещении this уже будет
-    //! другой, тогда получиться что в лямбде содержиться this, который указывает на уже опустошенный
-    //! экземпляр класса. Следовательно данный класс нельзя копировать и перемещать.
-    auto listenerRequestHandler = [this, clientRequestHandler] (Socket &&listenerSocket) {
+    clientPollFdSet_.push_back(clientPollFd);
+    tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
+    return true;
+}) {
+    const struct pollfd listenerPollFd = {.fd = listenerSocket_.fd(), .events = POLLRDNORM};
+    clientPollFdSet_.push_back(listenerPollFd);
+    tcpSessions_.push_back(TcpSession(tcpListener.getSocket(), listenerHandler_));
+}
+
+TcpMultiplexAcceptor::TcpMultiplexAcceptor(TcpMultiplexAcceptor &&other):
+listenerSocket_(std::move(other.listenerSocket_)),
+clientPollFdSet_(std::move(other.clientPollFdSet_)),
+tcpSessions_(std::move(other.tcpSessions_)),
+clientRequestHandler_(std::move(other.clientRequestHandler_)),
+listenerHandler_([this](Socket &&listenerSocket){
+    Socket clientSocket(listenerSocket.accept());
+    const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
+
+    clientPollFdSet_.push_back(clientPollFd);
+    tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
+    return true;
+}) {
+    tcpSessions_[0].setRequestHandler(listenerHandler_);
+}
+
+TcpMultiplexAcceptor &TcpMultiplexAcceptor::operator=(TcpMultiplexAcceptor &&other) {
+    listenerSocket_ = std::move(other.listenerSocket_);
+    clientPollFdSet_ = std::move(other.clientPollFdSet_);
+    tcpSessions_ = std::move(other.tcpSessions_);
+    clientRequestHandler_ = std::move(other.clientRequestHandler_);
+    listenerHandler_ = std::move([this](Socket &&listenerSocket){
         Socket clientSocket(listenerSocket.accept());
         const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
 
         clientPollFdSet_.push_back(clientPollFd);
-        tcpSessions_.push_back(TcpSession(std::move(clientSocket), clientRequestHandler));
+        tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
         return true;
-    };
-
-    tcpSessions_.push_back(TcpSession(listenerSocket.getSocket(), listenerRequestHandler));
+    });
+    return *this;
 }
 
 TcpMultiplexAcceptor::~TcpMultiplexAcceptor() {
@@ -69,7 +97,6 @@ bool TcpMultiplexAcceptor::handleEvent(TcpSession &tcpSession, const pollfd &pol
     return result;
 }
 
-
 TcpMultiplexAcceptor::TcpSession::TcpSession(Socket &&socket, ClientRequestHandler requestHandler):
 socket_(std::move(socket)),
 requestHandler_(requestHandler) {
@@ -93,6 +120,11 @@ bool TcpMultiplexAcceptor::TcpSession::operator()() {
 
 void TcpMultiplexAcceptor::TcpSession::close() {
     native_socket::CloseSocket(socket_.fd());
+}
+
+void TcpMultiplexAcceptor::TcpSession::setRequestHandler(
+        TcpMultiplexAcceptor::ClientRequestHandler requestHandler) {
+    requestHandler_ = std::move(requestHandler);
 }
 
 } // namespace acceptor {

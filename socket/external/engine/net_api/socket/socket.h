@@ -22,7 +22,11 @@ public:
 
     Socket(Address &&address, Type type);
     Socket(int fd, const Address &address, Type type);
-    ~Socket() = default;
+    Socket(const Socket &other);
+    Socket(Socket &&other) noexcept ;
+    Socket &operator=(const Socket &other);
+    Socket &operator=(Socket &&other);
+    ~Socket();
 
     void bind();
     void connect();
