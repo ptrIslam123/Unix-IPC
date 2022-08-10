@@ -2,23 +2,53 @@
 
 #include "socket/native_socket_api.h"
 
-namespace net {
+namespace {
 
-namespace acceptor {
-    
-TcpMultiplexAcceptor::TcpMultiplexAcceptor(tcp::TcpListener &&tcpListener, ClientRequestHandler clientRequestHandler):
-listenerSocket_(tcpListener.getSocket()),
-clientPollFdSet_(),
-tcpSessions_(),
-clientRequestHandler_(clientRequestHandler),
-listenerHandler_([this](Socket &&listenerSocket){
-    Socket clientSocket(listenerSocket.accept());
+class TcpListenerRequestHandler {
+public:
+    typedef net::acceptor::TcpMultiplexAcceptor::ClientPollFdSet ClientPollFdSet;
+    typedef net::acceptor::TcpMultiplexAcceptor::TcpSessions TcpSessions;
+    typedef net::acceptor::TcpMultiplexAcceptor::ClientRequestHandler ClientRequestHandler;
+
+    explicit TcpListenerRequestHandler(ClientPollFdSet &clientPollFdSet, TcpSessions &tcpSessions,
+                                       ClientRequestHandler clientRequestHandler);
+    bool operator()(net::Socket &&socket);
+
+private:
+    ClientPollFdSet &clientPollFdSet_;
+    TcpSessions &tcpSessions_;
+    ClientRequestHandler clientRequestHandler_;
+};
+
+TcpListenerRequestHandler::TcpListenerRequestHandler(
+        ClientPollFdSet &clientPollFdSet, TcpSessions &tcpSessions, ClientRequestHandler clientRequestHandler):
+clientPollFdSet_(clientPollFdSet),
+tcpSessions_(tcpSessions),
+clientRequestHandler_(clientRequestHandler) {
+}
+
+bool TcpListenerRequestHandler::operator()(net::Socket &&listenerSocket) {
+    net::Socket clientSocket(listenerSocket.accept());
     const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
 
     clientPollFdSet_.push_back(clientPollFd);
     tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
     return true;
-}) {
+}
+
+} // namespace
+
+
+namespace net {
+
+namespace acceptor {
+
+TcpMultiplexAcceptor::TcpMultiplexAcceptor(tcp::TcpListener &&tcpListener, ClientRequestHandler clientRequestHandler):
+listenerSocket_(tcpListener.getSocket()),
+clientPollFdSet_(),
+tcpSessions_(),
+clientRequestHandler_(clientRequestHandler),
+listenerHandler_(TcpListenerRequestHandler(clientPollFdSet_, tcpSessions_, clientRequestHandler)) {
     const struct pollfd listenerPollFd = {.fd = listenerSocket_.fd(), .events = POLLRDNORM};
     clientPollFdSet_.push_back(listenerPollFd);
     tcpSessions_.push_back(TcpSession(tcpListener.getSocket(), listenerHandler_));
@@ -29,14 +59,7 @@ listenerSocket_(std::move(other.listenerSocket_)),
 clientPollFdSet_(std::move(other.clientPollFdSet_)),
 tcpSessions_(std::move(other.tcpSessions_)),
 clientRequestHandler_(std::move(other.clientRequestHandler_)),
-listenerHandler_([this](Socket &&listenerSocket){
-    Socket clientSocket(listenerSocket.accept());
-    const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
-
-    clientPollFdSet_.push_back(clientPollFd);
-    tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
-    return true;
-}) {
+listenerHandler_(TcpListenerRequestHandler(clientPollFdSet_, tcpSessions_, clientRequestHandler_)) {
     tcpSessions_[0].setRequestHandler(listenerHandler_);
 }
 
@@ -45,14 +68,7 @@ TcpMultiplexAcceptor &TcpMultiplexAcceptor::operator=(TcpMultiplexAcceptor &&oth
     clientPollFdSet_ = std::move(other.clientPollFdSet_);
     tcpSessions_ = std::move(other.tcpSessions_);
     clientRequestHandler_ = std::move(other.clientRequestHandler_);
-    listenerHandler_ = std::move([this](Socket &&listenerSocket){
-        Socket clientSocket(listenerSocket.accept());
-        const struct pollfd clientPollFd = {.fd = clientSocket.fd(), .events = POLLRDNORM};
-
-        clientPollFdSet_.push_back(clientPollFd);
-        tcpSessions_.emplace_back(std::move(clientSocket), clientRequestHandler_);
-        return true;
-    });
+    listenerHandler_ = std::move(TcpListenerRequestHandler(clientPollFdSet_, tcpSessions_, clientRequestHandler_));
     return *this;
 }
 

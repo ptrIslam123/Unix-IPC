@@ -16,7 +16,10 @@ namespace acceptor {
 
 class TcpMultiplexAcceptor {
 public:
+    class TcpSession;
     typedef std::function<bool(Socket &&socket)> ClientRequestHandler;
+    typedef std::vector<struct pollfd> ClientPollFdSet;
+    typedef std::vector<TcpSession> TcpSessions;
 
     class TcpSession {
     public:
@@ -53,10 +56,10 @@ private:
     bool handleEvent(TcpSession &tcpSession, const struct pollfd &pollFd, int &readyCount);
 
     Socket listenerSocket_;
-    std::vector<struct pollfd> clientPollFdSet_;
-    std::vector<TcpSession> tcpSessions_;
-    ListenerHandler listenerHandler_;
+    ClientPollFdSet clientPollFdSet_;
+    TcpSessions tcpSessions_;
     ClientRequestHandler clientRequestHandler_;
+    ListenerHandler listenerHandler_;
 };
 
 } // namespace acceptor
