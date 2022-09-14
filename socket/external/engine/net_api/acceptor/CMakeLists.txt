@@ -9,13 +9,15 @@ add_library(${PROJECT_NAME} STATIC
 
 find_library(PTHREAD_LIBRARY pthread)
 
-target_link_directories(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME} PUBLIC
     socket
     buffer
     address_family
 )
 
-target_link_libraries(${PROJECT_NAME} ${PTHREAD_LIBRARY})
+target_link_libraries(${PROJECT_NAME} INTERFACE static_buffer)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PTHREAD_LIBRARY})
 
 target_include_directories(${PROJECT_NAME} PUBLIC .)
 target_include_directories(${PROJECT_NAME} PUBLIC ..)

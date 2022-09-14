@@ -1,7 +1,5 @@
 #include "tcp_multiplex_acceptor.h"
 
-#include "socket/native_socket_api.h"
-
 namespace {
 
 class TcpListenerRequestHandler {
@@ -135,7 +133,7 @@ bool TcpMultiplexAcceptor::TcpSession::operator()() {
 }
 
 void TcpMultiplexAcceptor::TcpSession::close() {
-    native_socket::CloseSocket(socket_.fd());
+    socket_.close();
 }
 
 void TcpMultiplexAcceptor::TcpSession::setRequestHandler(

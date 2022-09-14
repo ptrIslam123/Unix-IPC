@@ -11,8 +11,8 @@ public:
     Buffer();
     virtual ~Buffer() = default;
 
-    virtual size_t read(Byte *data, size_t size) = 0;
-    virtual size_t write(Byte *data, size_t size) = 0;
+    virtual size_t read(Byte *data, size_t size);
+    virtual size_t write(Byte *data, size_t size);
     virtual Byte *data() = 0;
     virtual const Byte *data() const = 0;
 
@@ -22,6 +22,7 @@ public:
     size_t capacity() const;
 
 protected:
+    size_t copy(Byte *src, Byte *dst, size_t size);
     void setSize(size_t size);
     void setCapacity(size_t capacity);
     void setIsGood(bool isGood);

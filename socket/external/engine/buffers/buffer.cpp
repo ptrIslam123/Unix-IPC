@@ -1,6 +1,7 @@
 #include "buffer.h"
 
 #include <cstring>
+#include <cassert>
 
 namespace io {
 
@@ -36,6 +37,23 @@ void Buffer::setSize(const size_t size) {
 
 void Buffer::setCapacity(const size_t capacity) {
     capacity_ = capacity;
+}
+
+size_t Buffer::read(Buffer::Byte *const data, const size_t size) {
+    assert(size <= capacity());
+    return copy(data(), data, size);
+}
+
+size_t Buffer::write(Buffer::Byte *const data, const size_t size) {
+    assert(size <= capacity());
+    return copy(data, data(), size);
+}
+
+size_t Buffer::copy(Buffer::Byte *const src, Buffer::Byte *const dst, size_t size) {
+    for (auto i = 0; i < size; ++i) {
+        dst[i] = src[i];
+    }
+    return size;
 }
 
 } // namespace io
